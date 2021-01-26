@@ -10,6 +10,7 @@ const PLAYLIST_URL = "http://ott.tv.planeta.tc/plst.m3u?4k";
 class Playlist {
   SharedPreferences _prefs;
   Map<int, CH> _allMap;
+  String sortedField;
 
   Playlist._();
 
@@ -17,11 +18,30 @@ class Playlist {
 
   Future<List<CH>> getData() async {
     if (_allMap == null) await _initAll();
-    return _allMap.values.toList();
+    final data = _allMap.values.toList();
+    data.sort((a, b) {
+      int v;
+      switch (sortedField) {
+        case "num":
+          v = a.number.compareTo(b.number);
+          break;
+        case "name":
+          v = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          break;
+        case "id":
+          v = a.id.compareTo(b.id);
+          break;
+        default:
+          v = a.id.compareTo(b.id);
+      }
+      return v;
+    });
+    return data;
   }
 
   _initAll() async {
     _prefs = await SharedPreferences.getInstance();
+    sortedField = _prefs.getString("sortedField");
     String data = _prefs.getString("channels");
     _allMap = {};
     if (data != null) {
