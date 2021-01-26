@@ -57,7 +57,7 @@ class _PlayerState extends State<Player> {
                           aspectRatio: 16.0 / 9.0,
                           child: VideoPlayer(_controller),
                         )),
-                        bottomBar(showMeau),
+                        bottomBar(showMeau, context),
                   ],
                 ),
                
@@ -72,12 +72,12 @@ class _PlayerState extends State<Player> {
   }
 }
 
-Widget bottomBar(bool showMeau) {
+Widget bottomBar(bool showMeau, BuildContext ctx) {
   return showMeau
       ? Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            height: 40,
+            height: 48,
             child: Padding(
               padding: EdgeInsets.all(0.0),
               child: Stack(
@@ -96,18 +96,25 @@ Widget bottomBar(bool showMeau) {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "videoSeek",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
+                            IconButton(
+                              color: Colors.white,
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                              },
                             ),
-                            Text(
-                              "videoDuration",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
+                            // Text(
+                            //   "videoSeek",
+                            //   style: TextStyle(
+                            //       fontWeight: FontWeight.bold,
+                            //       color: Colors.white),
+                            // ),
+                            // Text(
+                            //   "videoDuration",
+                            //   style: TextStyle(
+                            //       fontWeight: FontWeight.bold,
+                            //       color: Colors.white),
+                            // ),
                           ],
                         ),
                       ),
