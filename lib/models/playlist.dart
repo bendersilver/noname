@@ -18,7 +18,7 @@ class Playlist {
 
   Future<List<CH>> getData() async {
     if (_allMap == null) await _initAll();
-    final data = _allMap.values.toList();
+    final data = _allMap.values.toList().where((i) => i.delCh || !i.hideCh).toList();
     data.sort((a, b) {
       int v;
       switch (sortedField) {
@@ -37,6 +37,10 @@ class Playlist {
       return v;
     });
     return data;
+  }
+
+  CH getCh(int id) {
+    return _allMap[id];
   }
 
   _initAll() async {

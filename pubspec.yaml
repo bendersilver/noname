@@ -32,6 +32,7 @@ dependencies:
   http: any
   path_provider: any
   shared_preferences: any
+  video_player: any
 
 dev_dependencies:
   flutter_test:

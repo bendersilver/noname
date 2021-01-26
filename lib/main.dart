@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:noname/models/channel.dart';
 import 'package:noname/models/playlist.dart';
+import 'package:noname/wigets/chDialog.dart';
+import 'package:noname/wigets/player.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,12 +11,17 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var routes = <String, WidgetBuilder>{
+      Player.routeName: (BuildContext context) =>
+          new Player(),
+    };
     return MaterialApp(
       title: 'NoNapmeApp',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(title: 'Planeta playlist'),
+      routes: routes,
     );
   }
 }
@@ -46,47 +53,9 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (ctx, ix) {
               CH ch = snap.data[ix];
               return ListTile(
-                  onLongPress: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return StatefulBuilder(builder: (context, _setState) {
-                          return Dialog(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Container(
-                                  child: ListView(
-                                    shrinkWrap: true,
-                                    children: <Widget>[
-                                      ListTile(
-                                        leading: Icon(ch.hideCh
-                                            ? Icons.visibility
-                                            : Icons.visibility_off),
-                                        title: Text(
-                                            (ch.hideCh ? "Show" : "Hide") +
-                                                " channel"),
-                                        onTap: () {
-                                          ch.hideCh = !ch.hideCh;
-                                          Playlist.cls.dumpChannels();
-                                          setState(() {
-                                            _setState(() {});
-                                          });
-                                        },
-                                      ),
-                                      ListTile(
-                                        title: Text(ch.name),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          );
-                        });
-                      },
-                    );
-                  },
+                onTap: () {
+                  Navigator.pushNamed(context, Player.routeName, arguments: {"id": ch.id});
+                },
                   key: UniqueKey(),
                   title: Text(
                     ch.name,
@@ -96,14 +65,76 @@ class _MyHomePageState extends State<MyHomePage> {
                       decoration: ch.hideCh ? TextDecoration.lineThrough : null,
                     ),
                   ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.more_vert),
+                    onPressed: () {
+                      chDialog(context, ch, setState);
+                    }
+                  ),
                   leading: SizedBox(
                       height: 64.0,
                       width: 64.0,
-                      child: Image.network(ch.logo)));
+                      child: Image.network(ch.logo),
+                    ),
+                  );
             },
           );
         },
       ),
     );
+  }
+}
+
+
+
+class MyItemsPage extends StatefulWidget {
+  MyItemsPage({Key key, this.title}) : super(key: key);
+
+  static const String routeName = "/MyItemsPage";
+
+  final String title;
+
+  @override
+  _MyItemsPageState createState() => new _MyItemsPageState();
+}
+
+/// // 1. After the page has been created, register it with the app routes
+/// routes: <String, WidgetBuilder>{
+///   MyItemsPage.routeName: (BuildContext context) => new MyItemsPage(title: "MyItemsPage"),
+/// },
+///
+/// // 2. Then this could be used to navigate to the page.
+/// Navigator.pushNamed(context, MyItemsPage.routeName);
+///
+
+class _MyItemsPageState extends State<MyItemsPage> {
+  @override
+  Widget build(BuildContext context) {
+    final Map arguments = ModalRoute.of(context).settings.arguments as Map;
+    if (arguments != null) print(arguments['id']);
+
+    var button = new IconButton(
+        icon: new Icon(Icons.arrow_back), onPressed: _onButtonPressed);
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(widget.title),
+      ),
+      body: new Container(
+        child: new Column(
+          children: <Widget>[new Text('Item1'), new Text('Item2'), button],
+        ),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: _onFloatingActionButtonPressed,
+        tooltip: 'Add',
+        child: new Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _onFloatingActionButtonPressed() {}
+
+  void _onButtonPressed() {
+    Navigator.pop(context);
   }
 }
