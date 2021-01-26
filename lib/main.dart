@@ -50,33 +50,52 @@ class _MyHomePageState extends State<MyHomePage> {
                     showDialog(
                       context: context,
                       builder: (context) {
-                        return Dialog(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Container(
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: 2,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return ListTile(
-                                      title: Text(ch.name),
-                                      onTap: () {
-                                        setState(() => ch.name = '----');
-                                      },
-                                    );
-                                  },
-                                ),
-                              )
-                            ],
-                          ),
-                        );
+                        return StatefulBuilder(builder: (context, _setState) {
+                          return Dialog(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Container(
+                                  child: ListView(
+                                    shrinkWrap: true,
+                                    children: <Widget>[
+                                      ListTile(
+                                        leading: Icon(ch.hideCh
+                                            ? Icons.visibility
+                                            : Icons.visibility_off),
+                                        title: Text(
+                                            (ch.hideCh ? "Show" : "Hide") +
+                                                " channel"),
+                                        onTap: () {
+                                          ch.hideCh = !ch.hideCh;
+                                          Playlist.cls.dumpChannels();
+                                          setState(() {
+                                            _setState(() {});
+                                          });
+                                        },
+                                      ),
+                                      ListTile(
+                                        title: Text(ch.name),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        });
                       },
                     );
                   },
                   key: UniqueKey(),
-                  title: Text(ch.name),
+                  title: Text(
+                    ch.name,
+                    style: TextStyle(
+                      color: ch.hideCh ? Colors.grey : null,
+                      fontWeight: FontWeight.w500,
+                      decoration: ch.hideCh ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
                   leading: SizedBox(
                       height: 64.0,
                       width: 64.0,

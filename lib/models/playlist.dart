@@ -6,7 +6,6 @@ import 'package:noname/models/channel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const PLAYLIST_URL = "http://ott.tv.planeta.tc/plst.m3u?4k";
-// const PLAYLIST_URL = "http://188.226.52.142/plst.m3u";
 
 class Playlist {
   SharedPreferences _prefs;
@@ -34,6 +33,14 @@ class Playlist {
     await httpUpdate();
   }
 
+  dumpChannels() async {
+    List<dynamic> d = [];
+    _allMap.forEach((k, v) {
+      d.add(v.toMap());
+    });
+    _prefs.setString("channels", jsonEncode(d));
+  }
+
   httpUpdate() async {
     final response = await http.get(PLAYLIST_URL);
     if (response.statusCode == 200) {
@@ -52,11 +59,7 @@ class Playlist {
         }
         ch = null;
       }
-      List<dynamic> d = [];
-      _allMap.forEach((k, v) {
-        d.add(v.toMap());
-      });
-      _prefs.setString("channels", jsonEncode(d));
+      dumpChannels();
     } else {
       print(response.statusCode);
     }
