@@ -17,6 +17,7 @@ class PlaylistItem extends StatefulWidget {
 class _PlaylistItem extends State<PlaylistItem> {
   @override
   Widget build(BuildContext context) {
+    if (widget.ch.hideCh || widget.ch.delCh) return SizedBox.shrink(); 
     return ListTile(
       leading: SizedBox(
         height: 64.0,
@@ -40,9 +41,8 @@ class _PlaylistItem extends State<PlaylistItem> {
       ]),
       onLongPress: () async {
         await showDialogAction(context: context, ch: widget.ch);
-        setState(() {
-          print("object");
-        });
+        widget.ch.updateDB();
+        setState(() {});
       },
       onTap: () async {
         switch (widget.ch.player) {
@@ -54,44 +54,9 @@ class _PlaylistItem extends State<PlaylistItem> {
             break;
           default:
             Navigator.pushNamed(context, Player.routeName,
-                arguments: {"id": widget.ch.id});
+                arguments: {"ch": widget.ch});
         }
       },
     );
   }
 }
-
-// ListTile(
-//                 onTap: () async {
-//                   switch (ch.player) {
-//                     case "vlc":
-//                       await PlayerPlugin.openWithVlcPlayer(ch.url);
-//                       break;
-//                     case "mx":
-//                       await PlayerPlugin.openWithMxPlayer(ch.url, "");
-//                       break;
-//                     default:
-//                       Navigator.pushNamed(context, Player.routeName,
-//                           arguments: {"id": ch.id});
-//                   }
-//                 },
-//                 key: UniqueKey(),
-//                 title: Text(
-//                   ch.name,
-//                   style: TextStyle(
-//                     color: ch.hideCh ? Colors.grey : null,
-//                     fontWeight: FontWeight.w500,
-//                     decoration: ch.hideCh ? TextDecoration.lineThrough : null,
-//                   ),
-//                 ),
-//                 trailing: IconButton(
-//                     icon: Icon(Icons.more_vert),
-//                     onPressed: () {
-//                       chDialog(context, ch, setState);
-//                     }),
-//                 leading: SizedBox(
-//                   height: 64.0,
-//                   width: 64.0,
-//                   child: Image.network(ch.logo),
-//                 ),
-//               );

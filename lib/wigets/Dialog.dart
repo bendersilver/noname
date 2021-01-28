@@ -29,9 +29,7 @@ class _DialogAction extends State<DialogAction> {
                       Text((widget.ch.hideCh ? "Show" : "Hide") + " channel"),
                   onTap: () {
                     widget.ch.hideCh = !widget.ch.hideCh;
-                    setState(() {
-                      // _setState(() {});
-                    });
+                    setState(() {});
                   },
                 ),
                 ListTile(

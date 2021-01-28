@@ -1,11 +1,9 @@
-import 'dart:async';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:wakelock/wakelock.dart';
-import 'package:video_player/video_player.dart';
-
+import 'package:flutter/services.dart';
 import 'package:noname/models/channel.dart';
 import 'package:noname/models/playlist.dart';
+import 'package:video_player/video_player.dart';
+import 'package:wakelock/wakelock.dart';
 
 class Player extends StatefulWidget {
   static const String routeName = "/Player";
@@ -15,56 +13,58 @@ class Player extends StatefulWidget {
 
 class _PlayerState extends State<Player> {
   bool showMeau = false;
-  Timer _timerNav;
-  CH _ch;
-  VideoPlayerController _ctrl;
-  Future<void> _initPlayer;
+  VideoPlayerController _controller;
+  Future<void> _initializeVideoPlayerFuture;
+  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void dispose() {
-    Wakelock.disable();
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-    _timerNav.cancel();
-    _ctrl.dispose();
+    Wakelock.disable();
+    _controller.dispose();
     super.dispose();
   }
 
   void toggleControls() {
-    showMeau = true;
-    if (_timerNav != null) _timerNav.cancel();
-    _timerNav = Timer(Duration(seconds: 3), () {
-      setState(() {
-        showMeau = false;
-      });
-    });
-    setState(() {
-      showMeau = true;
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_ctrl == null) {
+    if (_controller == null) {
       final Map arg = ModalRoute.of(context).settings.arguments as Map;
-      _ch = Playlist.cls.getCh(arg["id"]);
-      _ctrl = VideoPlayerController.network(_ch.url);
-      _initPlayer = _ctrl.initialize();
-      _ctrl.setLooping(true);
-      _ctrl.setVolume(1);
-      Wakelock.enable();
+      CH ch = arg["ch"];
+      _controller = VideoPlayerController.network(ch.url);
+      _initializeVideoPlayerFuture = _controller.initialize();
+      _controller.setLooping(true);
+      _controller.setVolume(1);
+      _controller.addListener(() {
+        if (!_controller.value.isPlaying) {
+          if (_controller.value.errorDescription != null) {
+            scaffoldKey.currentState
+                .showSnackBar(new SnackBar(
+                  content: Text(_controller.value.errorDescription),
+                  duration: Duration(seconds: 10),
+                  ));
+          }
+        }
+      });
       SystemChrome.setEnabledSystemUIOverlays([]);
+      Wakelock.enable();
     }
     return Scaffold(
+      key: scaffoldKey,
       body: FutureBuilder(
-        future: _initPlayer,
+        future: _initializeVideoPlayerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            _ctrl.play();
+            _controller.play();
             return Scaffold(
               backgroundColor: Colors.black,
               body: GestureDetector(
                 onTap: () {
-                  toggleControls();
+                  showMeau = !showMeau;
+                  setState(() {});
                 },
                 child: Stack(
                   children: [
@@ -74,11 +74,12 @@ class _PlayerState extends State<Player> {
                         height: MediaQuery.of(context).size.height,
                         child: AspectRatio(
                           aspectRatio: 16.0 / 9.0,
-                          child: VideoPlayer(_ctrl),
+                          child: VideoPlayer(_controller),
                         )),
-                    bottomBar(showMeau, _ch, context),
+                        bottomBar(showMeau, context),
                   ],
                 ),
+               
               ),
             );
           } else {
@@ -90,7 +91,7 @@ class _PlayerState extends State<Player> {
   }
 }
 
-Widget bottomBar(bool showMeau, CH ch, BuildContext ctx) {
+Widget bottomBar(bool showMeau, BuildContext ctx) {
   return showMeau
       ? Align(
           alignment: Alignment.bottomCenter,
@@ -127,12 +128,12 @@ Widget bottomBar(bool showMeau, CH ch, BuildContext ctx) {
                             //       fontWeight: FontWeight.bold,
                             //       color: Colors.white),
                             // ),
-                            Text(
-                              ch.name,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
+                            // Text(
+                            //   "videoDuration",
+                            //   style: TextStyle(
+                            //       fontWeight: FontWeight.bold,
+                            //       color: Colors.white),
+                            // ),
                           ],
                         ),
                       ),
@@ -160,8 +161,8 @@ Widget bottomBar(bool showMeau, CH ch, BuildContext ctx) {
                             // onTap: play,
                             child: Icon(
                               // controller.value.isPlaying
-                              // ? Icons.play_circle_outline
-                              Icons.pause_circle_outline,
+                                  // ? Icons.play_circle_outline
+                                  Icons.pause_circle_outline,
                               color: Colors.white,
                               size: 35,
                             ),

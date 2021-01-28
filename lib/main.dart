@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:noname/models/channel.dart';
+import 'package:noname/models/database.dart';
 import 'package:noname/models/playlist.dart';
 import 'package:noname/wigets/PlaylistItem.dart';
 // import 'package:noname/wigets/chDialog.dart';
@@ -47,8 +48,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> getItems() async {
-    _items = await Playlist.cls.getData();
-    _items.sort((a, b) => CH.sort(a, b, "name"));
+    final db = await DBProvider.db.database;
+    DBProvider.db.httpM3UUpdate();
+    var res = await db.query("PlaylistItem", orderBy: "name");
+    _items = res.isNotEmpty ? res.map((c) => CH.fromMap(c)).toList() : [];
     setState(() {});
   }
 
@@ -59,21 +62,6 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: getBody()
-        // body: FutureBuilder(
-        //   future: Playlist.cls.getData(),
-        //   builder: (ctx, snap) {
-        //     if (!snap.hasData) {
-        //       return Center(child: CircularProgressIndicator());
-        //     }
-        //     return ListView.builder(
-        //       itemCount: snap.data.length,
-        //       itemBuilder: (ctx, ix) {
-        //         CH ch = snap.data[ix];
-        //         return PlaylistItem(ch: ch);
-        //       },
-        //     );
-        //   },
-        // ),
         );
   }
 

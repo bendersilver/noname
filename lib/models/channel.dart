@@ -1,4 +1,5 @@
 import 'package:m3u/m3u.dart';
+import 'package:noname/models/database.dart';
 
 class CH {
   int id;
@@ -59,11 +60,11 @@ class CH {
         name: json["name"],
         url: json["url"],
         logo: json["logo"],
-        group: json["group"],
+        group: json["groupCh"],
         player: json["player"],
-        newCh: json["newCh"],
-        hideCh: json["hideCh"],
-        delCh: json["delCh"],
+        newCh: json["newCh"] == 1,
+        hideCh: json["hideCh"] == 1,
+        delCh: json["delCh"] == 1,
         number: json["number"],
       );
 
@@ -73,12 +74,24 @@ class CH {
       "name": name,
       "url": url,
       "logo": logo,
-      "group": group,
+      "groupCh": group,
       "player": player,
-      "newCh": newCh,
-      "hideCh": hideCh,
-      "delCh": delCh,
+      "newCh": newCh ? 1 : 0,
+      "hideCh": hideCh ? 1 : 0,
+      "delCh": delCh ? 1 : 0,
       "number": number,
     };
+  }
+
+  Future<void> updateDB() async {
+     final db = await DBProvider.db.database;
+     await db.update("PlaylistItem",
+        {
+          "player": this.player,
+          "newCh": this.newCh ? 1 : 0,
+          "hideCh": this.hideCh ? 1 : 0,
+          "number": this.number,
+        },
+        where: 'id = ?', whereArgs: [this.id]);
   }
 }
