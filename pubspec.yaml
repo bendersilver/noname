@@ -33,6 +33,8 @@ dependencies:
   path_provider: any
   shared_preferences: any
   video_player: any
+  wakelock: any
+  mx_player_plugin: any
 
 dev_dependencies:
   flutter_test:

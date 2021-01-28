@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:wakelock/wakelock.dart';
+import 'package:video_player/video_player.dart';
+
 import 'package:noname/models/channel.dart';
 import 'package:noname/models/playlist.dart';
-import 'package:video_player/video_player.dart';
 
 class Player extends StatefulWidget {
   static const String routeName = "/Player";
@@ -10,42 +14,57 @@ class Player extends StatefulWidget {
 }
 
 class _PlayerState extends State<Player> {
-  bool showMeau = true;
-  VideoPlayerController _controller;
-  Future<void> _initializeVideoPlayerFuture;
+  bool showMeau = false;
+  Timer _timerNav;
+  CH _ch;
+  VideoPlayerController _ctrl;
+  Future<void> _initPlayer;
 
   @override
   void dispose() {
-    _controller.dispose();
+    Wakelock.disable();
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    _timerNav.cancel();
+    _ctrl.dispose();
     super.dispose();
   }
 
   void toggleControls() {
-    setState(() {});
+    showMeau = true;
+    if (_timerNav != null) _timerNav.cancel();
+    _timerNav = Timer(Duration(seconds: 3), () {
+      setState(() {
+        showMeau = false;
+      });
+    });
+    setState(() {
+      showMeau = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_controller == null) {
+    if (_ctrl == null) {
       final Map arg = ModalRoute.of(context).settings.arguments as Map;
-      CH ch = Playlist.cls.getCh(arg["id"]);
-      _controller = VideoPlayerController.network(ch.url);
-      _initializeVideoPlayerFuture = _controller.initialize();
-      _controller.setLooping(true);
-      _controller.setVolume(1);
+      _ch = Playlist.cls.getCh(arg["id"]);
+      _ctrl = VideoPlayerController.network(_ch.url);
+      _initPlayer = _ctrl.initialize();
+      _ctrl.setLooping(true);
+      _ctrl.setVolume(1);
+      Wakelock.enable();
+      SystemChrome.setEnabledSystemUIOverlays([]);
     }
     return Scaffold(
       body: FutureBuilder(
-        future: _initializeVideoPlayerFuture,
+        future: _initPlayer,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            _controller.play();
+            _ctrl.play();
             return Scaffold(
               backgroundColor: Colors.black,
               body: GestureDetector(
                 onTap: () {
-                  showMeau = !showMeau;
-                  setState(() {});
+                  toggleControls();
                 },
                 child: Stack(
                   children: [
@@ -55,12 +74,11 @@ class _PlayerState extends State<Player> {
                         height: MediaQuery.of(context).size.height,
                         child: AspectRatio(
                           aspectRatio: 16.0 / 9.0,
-                          child: VideoPlayer(_controller),
+                          child: VideoPlayer(_ctrl),
                         )),
-                        bottomBar(showMeau, context),
+                    bottomBar(showMeau, _ch, context),
                   ],
                 ),
-               
               ),
             );
           } else {
@@ -72,7 +90,7 @@ class _PlayerState extends State<Player> {
   }
 }
 
-Widget bottomBar(bool showMeau, BuildContext ctx) {
+Widget bottomBar(bool showMeau, CH ch, BuildContext ctx) {
   return showMeau
       ? Align(
           alignment: Alignment.bottomCenter,
@@ -109,12 +127,12 @@ Widget bottomBar(bool showMeau, BuildContext ctx) {
                             //       fontWeight: FontWeight.bold,
                             //       color: Colors.white),
                             // ),
-                            // Text(
-                            //   "videoDuration",
-                            //   style: TextStyle(
-                            //       fontWeight: FontWeight.bold,
-                            //       color: Colors.white),
-                            // ),
+                            Text(
+                              ch.name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
                           ],
                         ),
                       ),
@@ -142,8 +160,8 @@ Widget bottomBar(bool showMeau, BuildContext ctx) {
                             // onTap: play,
                             child: Icon(
                               // controller.value.isPlaying
-                                  // ? Icons.play_circle_outline
-                                  Icons.pause_circle_outline,
+                              // ? Icons.play_circle_outline
+                              Icons.pause_circle_outline,
                               color: Colors.white,
                               size: 35,
                             ),

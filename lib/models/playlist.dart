@@ -16,27 +16,16 @@ class Playlist {
 
   static final Playlist cls = Playlist._();
 
+  int len() {
+    if (_allMap != null) return _allMap.length;
+    return 0;
+  }
+
   Future<List<CH>> getData() async {
     if (_allMap == null) await _initAll();
-    final data = _allMap.values.toList().where((i) => i.delCh || !i.hideCh).toList();
-    data.sort((a, b) {
-      int v;
-      switch (sortedField) {
-        case "num":
-          v = a.number.compareTo(b.number);
-          break;
-        case "name":
-          v = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-          break;
-        case "id":
-          v = a.id.compareTo(b.id);
-          break;
-        default:
-          v = a.id.compareTo(b.id);
-      }
-      return v;
-    });
-    return data;
+    return _allMap.values.toList();
+    // data.sort((a, b) => CH.sort(a, b, sortedField));
+    // return data;
   }
 
   CH getCh(int id) {

@@ -25,6 +25,23 @@ class CH {
     this.number,
   });
 
+  static int sort(CH a, b, String field) {
+    int val;
+    switch (field) {
+      case "num":
+        val = a.number.compareTo(b.number);
+        break;
+      case "name":
+        val = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        break;
+      default:
+        val = a.id.compareTo(b.id);
+    }
+    return val;
+  }
+
+  // bool get isAdult => (DateTime.now().year - birthYear) > 18;
+
   factory CH.fromEntry(M3uGenericEntry e) => new CH(
         id: int.tryParse(e.attributes["tvg-id"]),
         name: e.title,
