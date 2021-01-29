@@ -1,35 +1,30 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:intl/intl.dart';
-import 'package:noname/models/channel.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:m3u/m3u.dart';
-import 'package:xml/xml.dart';
-
 import 'package:xml/xml_events.dart';
+
+import 'package:noname/models/M3UItem.dart';
+
 
 const M3U_URL = "http://ott.tv.planeta.tc/plst.m3u?4k";
 const XMLTV_URL =
     "http://ott.tv.planeta.tc/epg/program.xml?fields=desc&fields=icon";
 
-class DBProvider {
+class Core {
   Database _database;
-  List<Map<String, dynamic>> _program = [];
+  List<M3UItem> items = [];
+  Function wigetUpdate;
+  Timer _timer;
+  int _timestamp;
 
-  Future<Map<String, dynamic>> getProg(int ch) async {
-    print(_program.length);
-    for (var item in _program) {
-      if (item["channel"] == ch) return item;
-    }
-    return {};
-  }
-
-  DBProvider._();
-  static final DBProvider db = DBProvider._();
+  Core._();
+  static final Core cls = Core._();
 
   Future<Database> get database async {
     if (_database != null) return _database;
@@ -69,25 +64,74 @@ class DBProvider {
     });
   }
 
-  Future<Map<int, bool>> idsM3U() async {
+  bool contains(int id) {
+    for (final e in items) {
+      if (e.id == id) return true;
+    }
+    return false;
+  }
+
+  Future<void> fetchM3U() async {
+    final response = await http.get(M3U_URL);
+    if (response.statusCode == 200) {
+      final db = await database;
+      var res = await db.query("PlaylistItem");
+      items = res.isNotEmpty ? res.map((c) => M3UItem.fromMap(c)).toList() : [];
+      int count = items.length;
+      if (count > 0) {
+        wigetUpdate();
+      }
+
+      final m3u = await M3uParser.parse(response.body);
+      Batch batch = db.batch();
+      for (final e in m3u) {
+        M3UItem item = M3UItem.fromEntry(e);
+        if (contains(item.id)) {
+          batch.update("PlaylistItem",
+              item.updateMap(),
+              where: 'id = ?',
+              whereArgs: [item.id]);
+        } else {
+          count++;
+          batch.insert('PlaylistItem', item.createMap(count));
+          items.add(item);
+        }
+      }
+      await batch.commit(noResult: true);
+    } else {
+      print(response.statusCode);
+    }
+    _timer = Timer.periodic(Duration(seconds: 10), (Timer t) => updateProgramm());
+  }
+  
+  Future<void> updateProgramm() async {
+    print("updateProgramm");
+    _timestamp = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
     final db = await database;
-    var res = await db.rawQuery("SELECT id FROM PlaylistItem");
-    if (res.isEmpty) return {};
-    return Map.fromIterable(res, key: (v) => v["id"], value: (_) => true);
+    var res = await db.query("XMLTv",
+        where: "stop >= ? AND start <= ?",
+        whereArgs: [_timestamp, _timestamp],
+        orderBy: "start");
+    if (res.isEmpty) {
+      fetchXMLTv();
+      return ;
+    }
+    res.forEach((e) {
+      ProgrammItem p = ProgrammItem.fromMap(e);
+      for (var i in items) {
+        if (i.id == p.channel) {
+          i.programm = p;
+          if (i.wigetUpdate != null) i.wigetUpdate();
+        }
+      }
+    });
   }
 
-  parseDate(String s) {
-    return DateTime.parse(s.substring(0, 8) + 'T' + s.substring(8))
-            .millisecondsSinceEpoch /
-        1000;
-  }
-
-  Future<void> httpXMLTvUpdate(Map<int, bool> ids) async {
+  Future<void> fetchXMLTv() async {
     final request = await HttpClient().getUrl(Uri.parse(XMLTV_URL));
     final response = await request.close();
     if (response.statusCode == 200) {
       final db = await database;
-      // await db.transaction((tx) async {
       Batch batch = db.batch();
       batch.delete("XMLTv");
       response
@@ -98,8 +142,8 @@ class DBProvider {
           .flatten()
           .forEach((node) {
         batch.insert('XMLTv', {
-          "start": parseDate(node.getAttribute("start")),
-          "stop": parseDate(node.getAttribute("stop")),
+          "start": toTimestamp(node.getAttribute("start")),
+          "stop": toTimestamp(node.getAttribute("stop")),
           "channel": node.getAttribute("channel"),
           "title": node.getElement('title').text,
           "desc": node.getElement('desc')?.text,
@@ -107,59 +151,13 @@ class DBProvider {
         });
       });
       await batch.commit(noResult: true);
-      // });
-      var t = DateTime.now().millisecondsSinceEpoch / 1000;
-      var res = await db.query("XMLTv",
-          where: "stop >= ? AND start <= ?",
-          whereArgs: [t, t],
-          orderBy: "start");
-      if (res.isEmpty) _program = [];
-      else _program = res.toList();
     } else {
       print(response.statusCode);
     }
   }
 
-  Future<void> httpM3UUpdate() async {
-    final response = await http.get(M3U_URL);
-    if (response.statusCode == 200) {
-      final db = await database;
-      Map<int, bool> ids = await idsM3U();
-      int order = ids.length;
-
-      final m3u = await M3uParser.parse(response.body);
-      Batch batch = db.batch();
-      for (final e in m3u) {
-        CH ch = CH.fromEntry(e);
-        if (ids.containsKey(ch.id)) {
-          batch.update(
-              "PlaylistItem",
-              {
-                "name": ch.name,
-                "url": ch.url,
-                "logo": ch.logo,
-                "groupCh": ch.group
-              },
-              where: 'id = ?',
-              whereArgs: [ch.id]);
-        } else {
-          print(order);
-          order++;
-          batch.insert('PlaylistItem', {
-            "id": ch.id,
-            "name": ch.name,
-            "url": ch.url,
-            "logo": ch.logo,
-            "groupCh": ch.group,
-            "number": order,
-          });
-        }
-        ids[ch.id] = true;
-      }
-      await batch.commit(noResult: true);
-      httpXMLTvUpdate(ids);
-    } else {
-      print(response.statusCode);
-    }
+  int toTimestamp(String s) {
+    return (DateTime.parse(s.substring(0, 8) + 'T' + s.substring(8))
+            .millisecondsSinceEpoch / 1000).truncate();
   }
 }

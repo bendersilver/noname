@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:noname/models/Core.dart';
+import 'package:noname/models/M3UItem.dart';
 import 'package:noname/models/channel.dart';
 import 'package:noname/models/database.dart';
-import 'package:noname/models/playlist.dart';
+import 'package:noname/wigets/ListM3U.dart';
 import 'package:noname/wigets/PlaylistItem.dart';
-// import 'package:noname/wigets/chDialog.dart';
 import 'package:noname/wigets/player.dart';
-// import 'package:mx_player_plugin/mx_player_plugin.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'NoNapmeApp',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.pink,
       ),
       home: MyHomePage(title: 'Planeta playlist'),
       routes: routes,
@@ -38,22 +40,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<CH> _items;
-
-  @override
-  void initState() {
-    super.initState();
-    _items = [];
-    getItems();
-  }
-
-  Future<void> getItems() async {
-    final db = await DBProvider.db.database;
-    DBProvider.db.httpM3UUpdate();
-    var res = await db.query("PlaylistItem", orderBy: "name");
-    _items = res.isNotEmpty ? res.map((c) => CH.fromMap(c)).toList() : [];
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,20 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: getBody()
+        body: new BaseListView()
         );
-  }
-
-  Widget getBody() {
-    if (_items.isEmpty) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return ListView.builder(
-      itemCount: _items.length,
-      itemBuilder: (ctx, ix) {
-        CH ch = _items[ix];
-        return PlaylistItem(ch: ch);
-      },
-    );
   }
 }
