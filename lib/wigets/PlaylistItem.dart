@@ -21,7 +21,7 @@ class PlaylistItem extends StatefulWidget {
 class _PlaylistItem extends State<PlaylistItem> {
   @override
   Widget build(BuildContext context) {
-    if (widget.ch.hideCh || widget.ch.delCh) return SizedBox.shrink(); 
+    if (widget.ch.hideCh || widget.ch.delCh) return SizedBox.shrink();
     return ListTile(
       leading: SizedBox(
         height: 64.0,
@@ -38,7 +38,7 @@ class _PlaylistItem extends State<PlaylistItem> {
       ),
       subtitle: PlaylistItemProgress(ch: widget.ch),
       onLongPress: () async {
-        await showDialogAction(context: context, ch: widget.ch);
+        // await showDialogAction(context: context, ch: widget.ch);
         widget.ch.updateDB();
         setState(() {});
       },
@@ -59,7 +59,6 @@ class _PlaylistItem extends State<PlaylistItem> {
   }
 }
 
-
 class PlaylistItemProgress extends StatefulWidget {
   PlaylistItemProgress({Key key, this.ch}) : super(key: key);
 
@@ -70,14 +69,13 @@ class PlaylistItemProgress extends StatefulWidget {
 }
 
 class _PlaylistItemProgress extends State<PlaylistItemProgress> {
-
   Timer _timer;
   double _value = 0;
   String _title = "test";
 
   @override
   void dispose() {
-   _timer.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -85,9 +83,7 @@ class _PlaylistItemProgress extends State<PlaylistItemProgress> {
   void initState() {
     updateData();
     _timer = new Timer.periodic(
-        new Duration(seconds: 10),
-        (Timer t) async => await updateData()
-        );
+        new Duration(seconds: 10), (Timer t) async => await updateData());
     super.initState();
   }
 
@@ -119,15 +115,16 @@ class _PlaylistItemProgress extends State<PlaylistItemProgress> {
   Widget build(BuildContext context) {
     if (_title == null) return SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(_title, style: TextStyle(
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-        LinearProgressIndicator(
-          minHeight: 2,
-          value: _value,
-        ),
-      ]);
+      Text(
+        _title,
+        style: TextStyle(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      LinearProgressIndicator(
+        minHeight: 2,
+        value: _value,
+      ),
+    ]);
   }
 }

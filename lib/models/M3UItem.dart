@@ -1,8 +1,6 @@
-
 import 'package:m3u/m3u.dart';
 
 class M3UItem {
-  
   int id;
   String name;
   String url;
@@ -14,7 +12,6 @@ class M3UItem {
   bool delCh;
   int number;
   ProgrammItem programm;
-  Function wigetUpdate; 
 
   M3UItem({
     this.id,
@@ -28,7 +25,7 @@ class M3UItem {
     this.delCh,
     this.number,
   });
-  
+
   Map<String, dynamic> updateMap() {
     return {
       "name": name,
@@ -71,7 +68,6 @@ class M3UItem {
       );
 }
 
-
 class ProgrammItem {
   int channel;
   int start;
@@ -79,8 +75,8 @@ class ProgrammItem {
   String title;
   String desc;
   String icon;
-  Function fn;
-  
+  double progress;
+
   ProgrammItem({
     this.channel,
     this.start,
@@ -88,29 +84,19 @@ class ProgrammItem {
     this.title,
     this.desc,
     this.icon,
+    this.progress,
   });
 
-  double get progress {
-    final curr = DateTime.now().millisecondsSinceEpoch / 1000;
-    return (this.stop - curr) / (this.stop - this.start);
+  factory ProgrammItem.fromMap(Map<String, dynamic> j, int curr) {
+    var p = ProgrammItem(
+      channel: j["channel"],
+      start: j["start"],
+      stop: j["stop"],
+      title: j["title"],
+      desc: j["desc"],
+      icon: j["icon"],
+    );
+    p.progress = (curr - p.start) / (p.stop - p.start);
+    return p;
   }
-
-  update(Map<String, dynamic> json) {
-    this.start = json["start"];
-    this.stop = json["stop"];
-    this.title = json["title"];
-    this.desc = json["desc"];
-    this.icon = json["icon"];
-    if (fn != null) fn();
-  }
-
-
-  factory ProgrammItem.fromMap(Map<String, dynamic> json) => new ProgrammItem(
-        channel: json["channel"],
-        start: json["start"],
-        stop: json["stop"],
-        title: json["title"],
-        desc: json["desc"],
-        icon: json["icon"],
-      );
 }

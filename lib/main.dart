@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.pink,
       ),
-      home: MyHomePage(title: 'Planeta playlist'),
+      home: MyHomePage(),
       routes: routes,
     );
   }
@@ -40,14 +40,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: new BaseListView()
-        );
+      backgroundColor: Colors.white,
+      body: FutureBuilder(
+          future: Core.cls.initial(),
+          builder: (ctx, s) {
+            if (s.hasData) {
+              return new BaseListView();
+            }
+            return Center(child: CircularProgressIndicator());
+          }),
+    );
   }
 }

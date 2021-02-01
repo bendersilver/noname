@@ -11,7 +11,6 @@ import 'package:xml/xml_events.dart';
 
 import 'package:noname/models/M3UItem.dart';
 
-
 const M3U_URL = "http://ott.tv.planeta.tc/plst.m3u?4k";
 const XMLTV_URL =
     "http://ott.tv.planeta.tc/epg/program.xml?fields=desc&fields=icon";
@@ -19,7 +18,7 @@ const XMLTV_URL =
 class Core {
   Database _database;
   List<M3UItem> items = [];
-  Function wigetUpdate;
+  Map<int, dynamic> curProgramm;
   Timer _timer;
   int _timestamp;
 
@@ -64,6 +63,12 @@ class Core {
     });
   }
 
+  Future<bool> initial() async {
+    await fetchM3U();
+    await updateProgramm();
+    return true;
+  }
+
   bool contains(int id) {
     for (final e in items) {
       if (e.id == id) return true;
@@ -78,19 +83,13 @@ class Core {
       var res = await db.query("PlaylistItem");
       items = res.isNotEmpty ? res.map((c) => M3UItem.fromMap(c)).toList() : [];
       int count = items.length;
-      if (count > 0) {
-        wigetUpdate();
-      }
-
       final m3u = await M3uParser.parse(response.body);
       Batch batch = db.batch();
       for (final e in m3u) {
         M3UItem item = M3UItem.fromEntry(e);
         if (contains(item.id)) {
-          batch.update("PlaylistItem",
-              item.updateMap(),
-              where: 'id = ?',
-              whereArgs: [item.id]);
+          batch.update("PlaylistItem", item.updateMap(),
+              where: 'id = ?', whereArgs: [item.id]);
         } else {
           count++;
           batch.insert('PlaylistItem', item.createMap(count));
@@ -101,40 +100,39 @@ class Core {
     } else {
       print(response.statusCode);
     }
-    _timer = Timer.periodic(Duration(seconds: 10), (Timer t) => updateProgramm());
+    items.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    _timer =
+        Timer.periodic(Duration(seconds: 10), (Timer t) => updateProgramm());
   }
-  
+
   Future<void> updateProgramm() async {
-    print("updateProgramm");
     _timestamp = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
     final db = await database;
     var res = await db.query("XMLTv",
         where: "stop >= ? AND start <= ?",
         whereArgs: [_timestamp, _timestamp],
         orderBy: "start");
+
+    print(res.length);
     if (res.isEmpty) {
-      fetchXMLTv();
-      return ;
+      await fetchXMLTv();
     }
-    res.forEach((e) {
-      ProgrammItem p = ProgrammItem.fromMap(e);
-      for (var i in items) {
-        if (i.id == p.channel) {
-          i.programm = p;
-          if (i.wigetUpdate != null) i.wigetUpdate();
-        }
-      }
-    });
+    curProgramm = Map.fromIterable(
+      res,
+      key: (v) => v["channel"],
+      value: (v) => ProgrammItem.fromMap(v, _timestamp),
+    );
   }
 
   Future<void> fetchXMLTv() async {
+    print("fetchXMLTv");
     final request = await HttpClient().getUrl(Uri.parse(XMLTV_URL));
     final response = await request.close();
     if (response.statusCode == 200) {
       final db = await database;
+      await db.delete("XMLTv");
       Batch batch = db.batch();
-      batch.delete("XMLTv");
-      response
+      await response
           .transform(utf8.decoder)
           .toXmlEvents()
           .selectSubtreeEvents((event) => event.name == "programme")
@@ -158,6 +156,18 @@ class Core {
 
   int toTimestamp(String s) {
     return (DateTime.parse(s.substring(0, 8) + 'T' + s.substring(8))
-            .millisecondsSinceEpoch / 1000).truncate();
+                .millisecondsSinceEpoch /
+            1000)
+        .truncate();
+  }
+
+  toggleHide(int id, bool val) async {
+    final db = await database;
+    await db.update(
+      "PlaylistItem",
+      {"hideCh": val ? 1 : 0},
+      where: "id = ?",
+      whereArgs: [id],
+    );
   }
 }
