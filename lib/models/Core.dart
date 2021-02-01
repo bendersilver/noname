@@ -112,8 +112,6 @@ class Core {
         where: "stop >= ? AND start <= ?",
         whereArgs: [_timestamp, _timestamp],
         orderBy: "start");
-
-    print(res.length);
     if (res.isEmpty) {
       await fetchXMLTv();
     }

@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:noname/models/Core.dart';
-import 'package:noname/models/channel.dart';
-import 'package:noname/wigets/ListM3U.dart';
-import 'package:noname/wigets/PlaylistItem.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:noname/models/M3UItem.dart';
@@ -20,6 +17,8 @@ class _PlayerState extends State<Player> {
   bool showMeau = false;
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
+  M3UItem _item;
+  ProgrammItem _programm;
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
@@ -51,6 +50,11 @@ class _PlayerState extends State<Player> {
 
   @override
   Widget build(BuildContext context) {
+    if (_item == null) {
+      final Map arg = ModalRoute.of(context).settings.arguments as Map;
+      _item = arg["ch"];
+      _programm = Core.cls.curProgramm[_item.id];
+    }
     final Map arg = ModalRoute.of(context).settings.arguments as Map;
     M3UItem ch = arg["ch"];
     if (_controller == null) {
@@ -100,7 +104,7 @@ class _PlayerState extends State<Player> {
                       ),
                     ),
                     topBar(),
-                    bottomBar(showMeau, context, ch),
+                    // bottomBar(showMeau, context, ch),
                   ],
                 ),
               ),
@@ -114,6 +118,7 @@ class _PlayerState extends State<Player> {
   }
 
   Widget topBar() {
+    if (!showMeau) return Container();
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
@@ -127,17 +132,17 @@ class _PlayerState extends State<Player> {
                   Padding(
                     padding: EdgeInsets.only(left: 5.0, right: 5.0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
                           color: Colors.white,
                           icon: Icon(Icons.arrow_back),
                           onPressed: () {
-                            // Navigator.pop(ctx);
+                            Navigator.pop(context);
                           },
                         ),
                         Text(
-                          "_item.title",
+                          _programm.title,
                           style: TextStyle(
                               shadows: <Shadow>[
                                 Shadow(
@@ -159,47 +164,9 @@ class _PlayerState extends State<Player> {
                   ),
                 ],
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: EdgeInsets.all(5.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          // rewind(controller);
-                        },
-                        child: Icon(
-                          Icons.skip_previous,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-                      InkWell(
-                        // onTap: play,
-                        child: Icon(
-                          // controller.value.isPlaying
-                          // ? Icons.play_circle_outline
-                          Icons.pause_circle_outline,
-                          color: Colors.white,
-                          size: 35,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          // fastForward(controller: controller);
-                        },
-                        child: Icon(
-                          Icons.skip_next,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              LinearProgressIndicator(
+                minHeight: 1,
+                value: _programm.progress > 0 ? _programm.progress : null,
               ),
             ],
           ),

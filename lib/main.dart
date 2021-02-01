@@ -1,12 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:noname/models/Core.dart';
-import 'package:noname/models/M3UItem.dart';
-import 'package:noname/models/channel.dart';
-import 'package:noname/models/database.dart';
 import 'package:noname/wigets/ListM3U.dart';
-import 'package:noname/wigets/PlaylistItem.dart';
 import 'package:noname/wigets/player.dart';
 
 void main() {
