@@ -192,70 +192,79 @@ class PlayerLandscape extends StatelessWidget {
                             fontSize: 18),
                       ),
                 ),
-                VideoProgress(id: id),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        DateFormat(' HH:mm').format(
-                          DateTime.fromMillisecondsSinceEpoch(_item.start * 1000)
-                        ),
-                        style: TextStyle(
-                            shadows: <Shadow>[
-                              Shadow(
-                                blurRadius: 3.0,
-                                color: Colors.black,
-                              ),
-                              Shadow(
-                                offset: Offset(1.0, 1.0),
-                                blurRadius: 2.0,
-                                color: Colors.black,
-                              ),
-                            ],
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16),
-                      ),
-                    Text(
-                        DateFormat('HH:mm').format(DateTime.now()),
-                        style: TextStyle(
-                            shadows: <Shadow>[
-                              Shadow(
-                                blurRadius: 3.0,
-                                color: Colors.black,
-                              ),
-                              Shadow(
-                                offset: Offset(1.0, 1.0),
-                                blurRadius: 2.0,
-                                color: Colors.black,
-                              ),
-                            ],
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 22),
-                      ),
-                    Text(
-                        DateFormat('HH:mm ').format(
-                            DateTime.fromMillisecondsSinceEpoch(
-                                _item.stop * 1000)),
-                        style: TextStyle(
-                            shadows: <Shadow>[
-                              Shadow(
-                                blurRadius: 3.0,
-                                color: Colors.black,
-                              ),
-                              Shadow(
-                                offset: Offset(1.0, 1.0),
-                                blurRadius: 2.0,
-                                color: Colors.black,
-                              ),
-                            ],
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16),
-                      ),
-                  ]
-                )
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 32),
+                  child: Column(
+                    children: [
+                         VideoProgress(id: id),
+                              Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      DateFormat(' HH:mm').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              _item.start * 1000)),
+                                      style: TextStyle(
+                                          shadows: <Shadow>[
+                                            Shadow(
+                                              blurRadius: 3.0,
+                                              color: Colors.black,
+                                            ),
+                                            Shadow(
+                                              offset: Offset(1.0, 1.0),
+                                              blurRadius: 2.0,
+                                              color: Colors.black,
+                                            ),
+                                          ],
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16),
+                                    ),
+                                    Text(
+                                      DateFormat('HH:mm')
+                                          .format(DateTime.now()),
+                                      style: TextStyle(
+                                          shadows: <Shadow>[
+                                            Shadow(
+                                              blurRadius: 3.0,
+                                              color: Colors.black,
+                                            ),
+                                            Shadow(
+                                              offset: Offset(1.0, 1.0),
+                                              blurRadius: 2.0,
+                                              color: Colors.black,
+                                            ),
+                                          ],
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 22),
+                                    ),
+                                    Text(
+                                      DateFormat('HH:mm ').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              _item.stop * 1000)),
+                                      style: TextStyle(
+                                          shadows: <Shadow>[
+                                            Shadow(
+                                              blurRadius: 3.0,
+                                              color: Colors.black,
+                                            ),
+                                            Shadow(
+                                              offset: Offset(1.0, 1.0),
+                                              blurRadius: 2.0,
+                                              color: Colors.black,
+                                            ),
+                                          ],
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16),
+                                    ),
+                                  ])
+                    ],
+                  ),
+                ),
+             
               ],
             )) : SizedBox.shrink(),
           ],
