@@ -86,6 +86,7 @@ class ProgrammItem {
     this.icon,
     this.progress,
   });
+  
 
   factory ProgrammItem.fromMap(Map<String, dynamic> j, int curr) {
     var p = ProgrammItem(

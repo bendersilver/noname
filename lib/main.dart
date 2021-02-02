@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:noname/models/Core.dart';
 import 'package:noname/wigets/ListM3U.dart';
-import 'package:noname/wigets/player.dart';
+import 'package:noname/wigets/Player.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var routes = <String, WidgetBuilder>{
-      Player.routeName: (BuildContext context) => new Player(),
+      M3UPlayer.routeName: (BuildContext context) => new M3UPlayer(),
     };
     return MaterialApp(
       title: 'NoNapmeApp',

@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:noname/models/Core.dart';
 import 'package:noname/models/M3UItem.dart';
 import 'package:noname/wigets/Dialog.dart';
-import 'package:noname/wigets/player.dart';
+import 'package:noname/wigets/Player.dart';
 
 class BaseListView extends StatefulWidget {
   @override
@@ -29,9 +28,10 @@ class _BaseListView extends State<BaseListView> {
 }
 
 class ListViewM3U extends StatefulWidget {
-  ListViewM3U({Key key, this.item}) : super(key: key);
+  ListViewM3U({Key key, this.item, this.onTap}) : super(key: key);
 
   final M3UItem item;
+  final Function onTap;
 
   @override
   _ListViewM3U createState() => _ListViewM3U();
@@ -48,8 +48,12 @@ class _ListViewM3U extends State<ListViewM3U> {
     if (widget.item.hideCh || widget.item.delCh) return SizedBox.shrink();
     return ListTile(
         onTap: () {
-          Navigator.pushNamed(context, Player.routeName,
-              arguments: {"ch": widget.item});
+          if (widget.onTap == null) {
+            Navigator.pushNamed(context, M3UPlayer.routeName,
+                arguments: {"ch": widget.item});
+          } else {
+            widget.onTap();
+          }
         },
         onLongPress: () async {
           await showDialogAction(context: context, ch: widget.item);
@@ -58,12 +62,7 @@ class _ListViewM3U extends State<ListViewM3U> {
         leading: SizedBox(
           height: 64.0,
           width: 64.0,
-          child: CachedNetworkImage(
-            imageUrl: widget.item.logo,
-            placeholder: (context, url) => CircleAvatar(
-                backgroundColor: Colors.transparent, child: Icon(Icons.image)),
-            errorWidget: (context, url, error) => Icon(Icons.error),
-          ),
+          child: Image.network(widget.item.logo),
         ),
         title: Text(
           widget.item.name,
@@ -129,3 +128,53 @@ class _ProgrammWidget extends State<ProgrammWidget> {
     ]);
   }
 }
+
+
+class VideoProgress extends StatefulWidget {
+  VideoProgress({Key key, this.id}) : super(key: key);
+
+  final int id;
+
+  @override
+  _VideoProgress createState() => _VideoProgress();
+}
+
+class _VideoProgress extends State<VideoProgress> {
+  Timer _timer;
+  ProgrammItem _item;
+  double _progres;
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  update() {
+    final int curr = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
+    _item = Core.cls.curProgramm[widget.id];
+
+    _progres = (curr - _item.start) / (_item.stop - _item.start);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    update();
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+      update();
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_item == null) return SizedBox.shrink();
+    return 
+      LinearProgressIndicator(
+        minHeight: 3,
+        value: _progres,
+      );
+  }
+}
+

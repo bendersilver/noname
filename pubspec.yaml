@@ -34,7 +34,6 @@ dependencies:
   video_player: any
   wakelock: any
   mx_player_plugin: any
-  cached_network_image: any
 
 dev_dependencies:
   flutter_test:

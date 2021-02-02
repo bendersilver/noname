@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:noname/models/Core.dart';
 import 'package:noname/models/M3UItem.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:noname/wigets/ListM3U.dart';
 
 class DialogAction extends StatefulWidget {
@@ -49,13 +48,7 @@ class _DialogAction extends State<DialogAction> {
                   leading: SizedBox(
                     height: 64.0,
                     width: 64.0,
-                    child: CachedNetworkImage(
-                      imageUrl: widget.ch.logo,
-                      placeholder: (context, url) => CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child: Icon(Icons.image)),
-                      errorWidget: (context, url, error) => Icon(Icons.error),
-                    ),
+                    child: Image.network(widget.ch.logo),
                   ),
                   subtitle: ProgrammWidget(item: widget.ch),
                 ),
