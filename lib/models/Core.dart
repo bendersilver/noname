@@ -18,7 +18,6 @@ const XMLTV_URL =
 class Core {
   Database _database;
   List<M3UItem> items = [];
-  Map<int, dynamic> curProgramm;
   Timer _timer;
   int _timestamp;
 
@@ -105,6 +104,15 @@ class Core {
         Timer.periodic(Duration(seconds: 10), (Timer t) => updateProgramm());
   }
 
+  void setProgramm(ProgrammItem p) {
+    for (var el in items) {
+      if (el.id == p.channel) {
+        el.p = p;
+        return;
+      }
+    }
+  }
+
   Future<void> updateProgramm() async {
     _timestamp = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
     final db = await database;
@@ -115,11 +123,7 @@ class Core {
     if (res.isEmpty) {
       await fetchXMLTv();
     }
-    curProgramm = Map.fromIterable(
-      res,
-      key: (v) => v["channel"],
-      value: (v) => ProgrammItem.fromMap(v, _timestamp),
-    );
+    res.forEach((i) => setProgramm(ProgrammItem.fromMap(i)));
   }
 
   Future<void> fetchXMLTv() async {

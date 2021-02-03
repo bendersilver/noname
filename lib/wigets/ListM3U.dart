@@ -4,6 +4,7 @@ import 'package:noname/models/Core.dart';
 import 'package:noname/models/M3UItem.dart';
 import 'package:noname/wigets/Dialog.dart';
 import 'package:noname/wigets/Player.dart';
+import 'package:noname/wigets/ProgressIndicator.dart';
 
 class BaseListView extends StatefulWidget {
   @override
@@ -87,7 +88,6 @@ class ProgrammWidget extends StatefulWidget {
 
 class _ProgrammWidget extends State<ProgrammWidget> {
   Timer _timer;
-  ProgrammItem _item;
 
   @override
   void dispose() {
@@ -95,86 +95,24 @@ class _ProgrammWidget extends State<ProgrammWidget> {
     super.dispose();
   }
 
-  update() {
-    if (_item != Core.cls.curProgramm[widget.item.id]) {
-      setState(() {
-        _item = Core.cls.curProgramm[widget.item.id];
-      });
-    }
-  }
-
   @override
   void initState() {
-    update();
     _timer = Timer.periodic(Duration(seconds: 2), (timer) {
-      update();
+      setState(() {});
     });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_item == null) return SizedBox.shrink();
+    if (!widget.item.pExists) return SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(
-        _item.title,
+        widget.item.p.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      LinearProgressIndicator(
-        minHeight: 3,
-        value: _item.progress > 0 ? _item.progress : null,
-      ),
+      Progress(item: widget.item),
     ]);
   }
 }
-
-
-class VideoProgress extends StatefulWidget {
-  VideoProgress({Key key, this.id}) : super(key: key);
-
-  final int id;
-
-  @override
-  _VideoProgress createState() => _VideoProgress();
-}
-
-class _VideoProgress extends State<VideoProgress> {
-  Timer _timer;
-  ProgrammItem _item;
-  double _progres;
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  update() {
-    final int curr = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
-    _item = Core.cls.curProgramm[widget.id];
-
-    _progres = (curr - _item.start) / (_item.stop - _item.start);
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    update();
-    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
-      update();
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_item == null) return SizedBox.shrink();
-    return 
-      LinearProgressIndicator(
-        minHeight: 3,
-        value: _progres,
-      );
-  }
-}
-

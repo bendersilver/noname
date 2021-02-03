@@ -13,11 +13,8 @@ class DialogAction extends StatefulWidget {
 }
 
 class _DialogAction extends State<DialogAction> {
-  ProgrammItem p;
   @override
   void initState() {
-    p = Core.cls.curProgramm[widget.ch.id];
-    if (p == null) p = new ProgrammItem();
     super.initState();
   }
 
@@ -52,14 +49,16 @@ class _DialogAction extends State<DialogAction> {
                   ),
                   subtitle: ProgrammWidget(item: widget.ch),
                 ),
-                p.desc != null
+                widget.ch.p.desc != null
                     ? Padding(
                         padding: EdgeInsets.symmetric(
                             vertical: 8.0, horizontal: 16.0),
-                        child: Text(p.desc),
+                        child: Text(widget.ch.p.desc),
                       )
                     : SizedBox.shrink(),
-                p.icon != null ? Image.network(p.icon) : SizedBox.shrink(),
+                widget.ch.p.icon != null
+                    ? Image.network(widget.ch.p.icon)
+                    : SizedBox.shrink(),
               ],
             ),
           ),

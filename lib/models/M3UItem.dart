@@ -11,7 +11,22 @@ class M3UItem {
   bool hideCh;
   bool delCh;
   int number;
-  ProgrammItem programm;
+  ProgrammItem p;
+
+  bool _openPlayerNaw;
+
+  set setOpenPlayerNaw(bool v) {
+    _openPlayerNaw = v;
+  }
+
+  Future<bool> get openPlayerNaw async {
+    if (_openPlayerNaw == null) return true;
+    return _openPlayerNaw;
+  }
+
+  toggleOpenPlayerNaw() {
+    _openPlayerNaw = !_openPlayerNaw;
+  }
 
   M3UItem({
     this.id,
@@ -25,6 +40,11 @@ class M3UItem {
     this.delCh,
     this.number,
   });
+
+  bool get pExists {
+    final int curr = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
+    return this.p != null && p.start < curr && p.stop > curr;
+  }
 
   Map<String, dynamic> updateMap() {
     return {
@@ -84,11 +104,10 @@ class ProgrammItem {
     this.title,
     this.desc,
     this.icon,
-    this.progress,
+    // this.progress,
   });
-  
 
-  factory ProgrammItem.fromMap(Map<String, dynamic> j, int curr) {
+  factory ProgrammItem.fromMap(Map<String, dynamic> j) {
     var p = ProgrammItem(
       channel: j["channel"],
       start: j["start"],
@@ -97,7 +116,7 @@ class ProgrammItem {
       desc: j["desc"],
       icon: j["icon"],
     );
-    p.progress = (curr - p.start) / (p.stop - p.start);
+    // p.progress = (curr - p.start) / (p.stop - p.start);
     return p;
   }
 }
